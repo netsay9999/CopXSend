@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.14.1" />
+    <PackageReference Include="Discord.Net.Interactions" Version="3.14.1" />
+    <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.154" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\H.RedisTools\H.RedisTools.csproj" />
+    <ProjectReference Include="..\H.Tools\H.Saas.Tools.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BotModels\" />
+  </ItemGroup>
+
+</Project>
