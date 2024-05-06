@@ -73,7 +73,13 @@ namespace MySecondBot
             if (string.IsNullOrEmpty(u.fa_secret))
             {
                 var cb = new ComponentBuilder()
-                    .WithButton("绑定2FA", "btn_2FA", ButtonStyle.Success);
+                    .WithButton("绑定2FA", "btn_2FA", ButtonStyle.Success)
+                    .WithButton("站内转账", "btn_zz", ButtonStyle.Danger)
+                    .WithButton("COPX提现", "btn_tx", ButtonStyle.Danger)
+                    .WithButton("绑定币安", "btn_bdba", ButtonStyle.Danger)
+                    .WithButton("绑定OKX", "btn_bdokx", ButtonStyle.Danger)
+                    .WithButton("绑定钱包", "btn_bdqb", ButtonStyle.Danger)
+                    .WithButton("我的邀请", "btn_wdyq", ButtonStyle.Danger);
                 await interaction.RespondAsync(msg,
                       components: cb.Build(),
                       ephemeral: true);
@@ -81,7 +87,7 @@ namespace MySecondBot
             else
             {
                 var cb = new ComponentBuilder()
-                    //.WithButton("绑定2FA", "btn_2FA", ButtonStyle.Success)
+                    .WithButton("绑定2FA", "btn_2FA", ButtonStyle.Success)
                     .WithButton("站内转账", "btn_zz", ButtonStyle.Success)
                     .WithButton("COPX提现", "btn_tx", ButtonStyle.Success)
                     .WithButton("绑定币安", "btn_bdba", ButtonStyle.Success)
@@ -170,6 +176,12 @@ namespace MySecondBot
 
         public static async Task Bind_ZhuanZhang(string keyId, SocketInteraction interaction)
         {
+            var u = bll.GetUser(keyId);
+            if (u != null && string.IsNullOrEmpty(u.fa_secret))
+            {
+                await interaction.RespondAsync("未绑定2FA", ephemeral: true);
+                return;
+            }
             var mb = new ModalBuilder()
                       .WithTitle("站内转账")
                       .WithCustomId("menu_zz")
@@ -181,6 +193,12 @@ namespace MySecondBot
 
         public static async Task Bind_BiAn(string keyId, SocketInteraction interaction)
         {
+            var u = bll.GetUser(keyId);
+            if (u != null && string.IsNullOrEmpty(u.fa_secret))
+            {
+                await interaction.RespondAsync("未绑定2FA", ephemeral: true);
+                return;
+            }
             var mb = new ModalBuilder()
                      .WithTitle("绑定币安")
                      .WithCustomId("menu_bdba")

@@ -8,6 +8,7 @@ using OfficeOpenXml.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MySecondBot
@@ -76,7 +77,8 @@ namespace MySecondBot
             string input_bdba_2facode = components.First(x => x.CustomId == "input_bdba_2facode").Value;
 
             var u = bll.GetUser(keyId);
-            if (u == null) {
+            if (u == null)
+            {
                 await modal.RespondAsync("账号错误", allowedMentions: mentions, ephemeral: true);
                 return;
             }
@@ -109,8 +111,8 @@ namespace MySecondBot
         {
             string uid = components.First(x => x.CustomId == "input_zz_uid").Value;
             decimal? point = (components.First(x => x.CustomId == "input_point").Value).NumX(2);
-            var code = AutoNum(999, 9999);
-            var obj = bll.SendEmail(keyId, code, point);
+            var code = AutoNum(99999, 999999);
+            var obj = bll.SendEmail(keyId, code, point,uid);
             if (obj.success)
             {
                 var user = obj.data as hh_user;
@@ -119,7 +121,7 @@ namespace MySecondBot
                     chat = point,
                     discord_id = uid,
                     Binanceid = code,
-                }, 10, DType.Minutes);
+                }, 1, DType.Hours);
                 //components = new List<SocketMessageComponentData>();
                 var cb = new ComponentBuilder();
                 cb.WithButton("转账验证", "btn_zz_code", ButtonStyle.Success);
@@ -128,7 +130,7 @@ namespace MySecondBot
             }
             else
             {
-                await modal.RespondAsync("CopX不足", allowedMentions: mentions, ephemeral: true);
+                await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
             }
             return;
         }
@@ -141,8 +143,10 @@ namespace MySecondBot
 
             var model = redis.Get<hh_user>("SendEmail" + keyId);
             if (model == null)
+            {
                 await modal.RespondAsync("Email验证码已过期", allowedMentions: mentions, ephemeral: true);
-
+                return;
+            }
             if (model.Binanceid != input_zz_mail_code)
             {
                 await modal.RespondAsync("Email验证码校验失败", allowedMentions: mentions, ephemeral: true);
@@ -152,8 +156,23 @@ namespace MySecondBot
             var obj = bll.chat_check2fa(keyId, input_zz_2fa_code);
             if (obj.success)
             {
-                redis.KeyDelete(keyId);
-                await modal.RespondAsync("2FA验证成功，转账开发中。", allowedMentions: mentions, ephemeral: true);
+                //redis.KeyDelete("SendEmail" + keyId);
+                //chat = point,
+                //discord_id = uid,
+                // Binanceid = code,
+                //{"id":1,"otherid":964,"num":10}
+                var sr = $"{keyId}{model.discord_id}copxbot";
+                var privatekey = Md5Helper.MdEncrypt(sr, 32);
+                var str = Post(JsonConvert.SerializeObject(new
+                {
+                    privatekey = privatekey,
+                    id = keyId,
+                    otherid = model.discord_id,
+                    num = model.chat,
+                }), $"{apihost}/api/bot/copx_to_copx");
+                obj = JsonConvert.DeserializeObject<ApiResultEntity>(str);
+
+                await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
             }
             else
             {

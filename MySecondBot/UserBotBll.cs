@@ -32,13 +32,18 @@ namespace MySecondBot
         /// <param name="keyId"></param>
         /// <param name="code"></param>
         /// <returns></returns>
-        public ApiResultEntity SendEmail(string keyId, string code, decimal? point)
+        public ApiResultEntity SendEmail(string keyId, string code, decimal? point, string uid)
         {
             var user = dbContent.Queryable<hh_user>().First(t => t.discord_id == keyId);
             if (user == null)
                 return Errors();
+            var id=Convert.ToInt32(uid);
+            var toUser = dbContent.Queryable<hh_user>().First(t => t.id == id);
+            if (toUser == null)
+                return Errors("接受用户不存在");
+
             if (user.copx < point)
-                return Errors();
+                return Errors("CopX不足");
             Task.Run(() =>
             {
                 new Mail().Send(new MailIfo
@@ -52,7 +57,7 @@ namespace MySecondBot
                     subject = $"{mail_AppName}转账验证。"
                 });
             });
-           
+
             return Success("", user);
         }
         public SetupCode Google(string key, string Guids)
