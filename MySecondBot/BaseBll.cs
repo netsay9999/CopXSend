@@ -1,12 +1,8 @@
-﻿using Discord.Audio.Streams;
-using H.RedisTools;
+﻿using H.RedisTools;
 using H.Saas.Tools;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Logging;
 using SqlSugar;
 using System;
-using System.Configuration;
-using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Text;

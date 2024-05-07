@@ -4,11 +4,8 @@ using H.Bot.BotModels;
 using H.RedisTools;
 using H.Saas.Tools;
 using Newtonsoft.Json;
-using OfficeOpenXml.Utils;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MySecondBot
@@ -107,30 +104,122 @@ namespace MySecondBot
             return;
         }
 
+        internal static async Task Form_bind_bsc(string keyId, List<SocketMessageComponentData> components, SocketModal modal, AllowedMentions mentions)
+        {
+            var input_bind_bsc = components.First(x => x.CustomId == "input_bind_bsc").Value;
+            string input_tx_copx_2Fa = components.First(x => x.CustomId == "input_tx_copx_2Fa").Value;
+            var u = bll.GetUser(keyId);
+            if (!string.IsNullOrEmpty(u.address_bsc))
+            {
+                await modal.RespondAsync("BSC钱包已绑定", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            GoogleAuthenticator gat = new GoogleAuthenticator();
+            var result = gat.ValidateTwoFactorPIN(u.fa_secret, input_tx_copx_2Fa);
+            if (result == false)
+            {
+                await modal.RespondAsync("2FA验证失败", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            bll.Bind_Bsc(u, input_bind_bsc, 0);
+            var msg =
+                 $"\r\nBSC钱包绑定成功" +
+                 $"\r\n\r\n:绑定地址：{input_bind_bsc}";
+            await modal.RespondAsync(msg, allowedMentions: mentions, ephemeral: true);
+            return;
+        }
+
+        internal static async Task Form_bind_usdt(string keyId, List<SocketMessageComponentData> components, SocketModal modal, AllowedMentions mentions)
+        {
+            var input_bind_usdt = components.First(x => x.CustomId == "input_bind_usdt").Value;
+            string input_tx_copx_2Fa = components.First(x => x.CustomId == "input_tx_copx_2Fa").Value;
+            var u = bll.GetUser(keyId);
+            if (!string.IsNullOrEmpty(u.address_usdt))
+            {
+                await modal.RespondAsync("USDT钱包已绑定", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            GoogleAuthenticator gat = new GoogleAuthenticator();
+            var result = gat.ValidateTwoFactorPIN(u.fa_secret, input_tx_copx_2Fa);
+            if (result == false)
+            {
+                await modal.RespondAsync("2FA验证失败", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            bll.Bind_Bsc(u, input_bind_usdt, 1);
+            var msg =
+                 $"\r\nUSDT钱包绑定成功" +
+                 $"\r\n\r\n:绑定地址：{input_bind_usdt}";
+            await modal.RespondAsync(msg, allowedMentions: mentions, ephemeral: true);
+        }
+
+        internal static async Task Form_tx_copx(string keyId, List<SocketMessageComponentData> components, SocketModal modal, AllowedMentions mentions)
+        {
+            var point = (components.First(x => x.CustomId == "input_tx_copx").Value).NumX(6);
+            string input_tx_copx_2Fa = components.First(x => x.CustomId == "input_tx_copx_2Fa").Value;
+            var u = bll.GetUser(keyId);
+            if (u.copx < point)
+            {
+                await modal.RespondAsync("Copx 不足", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            GoogleAuthenticator gat = new GoogleAuthenticator();
+            var result = gat.ValidateTwoFactorPIN(u.fa_secret, input_tx_copx_2Fa);
+            if (result == false)
+            {
+                await modal.RespondAsync("2FA验证失败", allowedMentions: mentions, ephemeral: true);
+                return;
+            }
+            var code = AutoNum(99999, 999999);
+            bll.SendEmail(u, code);
+            redis.Set("SendEmail" + keyId, new hh_user
+            {
+                chat = point,
+                discord_id = "",
+                Binanceid = code,
+                id = 2,
+            }, 1, DType.Hours);
+            var cb = new ComponentBuilder();
+            cb.WithButton("提现验证", "btn_zz_code", ButtonStyle.Success);
+            var msg = $"Copx提现，当前剩余个数：{u.copx}，转出数量：{point}。";
+            await modal.RespondAsync(msg, components: cb.Build(), ephemeral: true);
+        }
+
         internal static async Task Form_ZhuanZhuang(string keyId, List<SocketMessageComponentData> components, SocketModal modal, AllowedMentions mentions)
         {
-            string uid = components.First(x => x.CustomId == "input_zz_uid").Value;
-            decimal? point = (components.First(x => x.CustomId == "input_point").Value).NumX(2);
-            var code = AutoNum(99999, 999999);
-            var obj = bll.SendEmail(keyId, code, point,uid);
+
+            string input_zz_2fa_code = components.First(x => x.CustomId == "input_zz_2fa_code").Value;
+            var obj = bll.chat_check2fa(keyId, input_zz_2fa_code);
             if (obj.success)
             {
-                var user = obj.data as hh_user;
-                redis.Set("SendEmail" + keyId, new hh_user
+                string uid = components.First(x => x.CustomId == "input_zz_uid").Value;
+                decimal? point = (components.First(x => x.CustomId == "input_point").Value).NumX(2);
+                var code = AutoNum(99999, 999999);
+                obj = bll.SendEmail(keyId, code, point, uid);
+                if (obj.success)
                 {
-                    chat = point,
-                    discord_id = uid,
-                    Binanceid = code,
-                }, 1, DType.Hours);
-                //components = new List<SocketMessageComponentData>();
-                var cb = new ComponentBuilder();
-                cb.WithButton("转账验证", "btn_zz_code", ButtonStyle.Success);
-                var msg = $"Copx转出，当前剩余个数：{user.copx}，接收用户UID：{uid}，转出数量：{point}。";
-                await modal.RespondAsync(msg, components: cb.Build(), ephemeral: true);
+                    var user = obj.data as hh_user;
+                    redis.Set("SendEmail" + keyId, new hh_user
+                    {
+                        chat = point,
+                        discord_id = uid,
+                        Binanceid = code,
+                        id = 1,
+                    }, 1, DType.Hours);
+                    //components = new List<SocketMessageComponentData>();
+                    var cb = new ComponentBuilder();
+                    cb.WithButton("转账验证", "btn_zz_code", ButtonStyle.Success);
+                    var msg = $"Copx转出，当前剩余个数：{user.copx}，接收用户UID：{uid}，转出数量：{point}。";
+                    await modal.RespondAsync(msg, components: cb.Build(), ephemeral: true);
+                }
+                else
+                {
+                    await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
+                }
             }
             else
             {
-                await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
+                await modal.RespondAsync("2FA验证失败", allowedMentions: mentions, ephemeral: true);
             }
             return;
         }
@@ -138,9 +227,6 @@ namespace MySecondBot
         internal static async Task Form_ZhuanZhuang_Code(string keyId, List<SocketMessageComponentData> components, SocketModal modal, AllowedMentions mentions)
         {
             string input_zz_mail_code = components.First(x => x.CustomId == "input_zz_mail_code").Value;
-            string input_zz_2fa_code = components.First(x => x.CustomId == "input_zz_2fa_code").Value;
-
-
             var model = redis.Get<hh_user>("SendEmail" + keyId);
             if (model == null)
             {
@@ -153,31 +239,24 @@ namespace MySecondBot
                 return;
             }
 
-            var obj = bll.chat_check2fa(keyId, input_zz_2fa_code);
-            if (obj.success)
+            var sr = $"{keyId}{model.discord_id}copxbot";
+            var privatekey = Md5Helper.MdEncrypt(sr, 32);
+            //id=1转账
+            //id=2提现
+            var host = $"{apihost}/api/bot/copx_to_copx";
+            if (model.id == 2)
+                host = $"{apihost}/api/bot/copx_to_bnb";
+            var str = Post(JsonConvert.SerializeObject(new
             {
-                //redis.KeyDelete("SendEmail" + keyId);
-                //chat = point,
-                //discord_id = uid,
-                // Binanceid = code,
-                //{"id":1,"otherid":964,"num":10}
-                var sr = $"{keyId}{model.discord_id}copxbot";
-                var privatekey = Md5Helper.MdEncrypt(sr, 32);
-                var str = Post(JsonConvert.SerializeObject(new
-                {
-                    privatekey = privatekey,
-                    id = keyId,
-                    otherid = model.discord_id,
-                    num = model.chat,
-                }), $"{apihost}/api/bot/copx_to_copx");
-                obj = JsonConvert.DeserializeObject<ApiResultEntity>(str);
+                privatekey = privatekey,
+                id = keyId,
+                otherid = model.discord_id,
+                num = model.chat,
+            }), host);
+            var obj = JsonConvert.DeserializeObject<ApiResultEntity>(str);
 
-                await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
-            }
-            else
-            {
-                await modal.RespondAsync("2FA验证失败", allowedMentions: mentions, ephemeral: true);
-            }
+            await modal.RespondAsync(obj.msg, allowedMentions: mentions, ephemeral: true);
+
             return;
         }
     }

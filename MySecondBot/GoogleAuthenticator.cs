@@ -1,5 +1,4 @@
-﻿using Discord.Audio.Streams;
-using Google.Authenticator;
+﻿using Google.Authenticator;
 using H.Saas.Tools;
 using System;
 using System.Collections.Generic;

@@ -1,9 +1,7 @@
 ﻿using Google.Authenticator;
 using H.Bot.BotModels;
-using H.RedisTools;
 using H.Saas.Tools;
 using System;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 namespace MySecondBot
 {
@@ -21,6 +19,7 @@ namespace MySecondBot
             var count = dbContent.Updateable<hh_user>().SetColumns(t => new hh_user
             {
                 Binanceid = uid,
+                bindBinance = true,
             }).Where(t => t.discord_id == keyId && string.IsNullOrEmpty(t.Binanceid)).ExecuteCommand();
 
             return Success(count > 0);
@@ -37,7 +36,7 @@ namespace MySecondBot
             var user = dbContent.Queryable<hh_user>().First(t => t.discord_id == keyId);
             if (user == null)
                 return Errors();
-            var id=Convert.ToInt32(uid);
+            var id = Convert.ToInt32(uid);
             var toUser = dbContent.Queryable<hh_user>().First(t => t.id == id);
             if (toUser == null)
                 return Errors("接受用户不存在");
@@ -99,6 +98,32 @@ namespace MySecondBot
         public hh_user GetUser(string keyId)
         {
             return dbContent.Queryable<hh_user>().First(t => t.discord_id == keyId);
+        }
+
+        internal void SendEmail(hh_user u, string code)
+        {
+            Task.Run(() =>
+            {
+                new Mail().Send(new MailIfo
+                {
+                    body = code,
+                    receiverAddess = u.email,
+                    senderAddress = senderAddress,
+                    smtpHost = smtpHost,
+                    smtpPassword = smtpPassword,
+                    smtpPort = smtpPort,
+                    subject = $"{mail_AppName}，提现验证。"
+                });
+            });
+        }
+
+        internal void Bind_Bsc(hh_user u, string input_bind_bsc, int type)
+        {
+            if (type == 0)
+                u.address_bsc = input_bind_bsc;
+            if (type == 1)
+                u.address_usdt = input_bind_bsc;
+            dbContent.Updateable(u).ExecuteCommand();
         }
     }
 }

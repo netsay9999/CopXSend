@@ -1,22 +1,13 @@
-﻿using Discord.WebSocket;
-using Discord;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using H.Saas.Tools;
+using Newtonsoft.Json;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
-using System.Net;
-using System.Text;
-using H.RedisTools;
-using Discord.Commands;
-using H.Saas.Tools;
-using H.Bot.BotModels;
-using Discord.Rest;
-using NetTaste;
-using SixLabors.ImageSharp.Drawing;
-using Microsoft.VisualBasic;
-using System.Security.Cryptography;
+using System.Threading.Tasks;
+
 
 namespace MySecondBot
 {
@@ -153,7 +144,7 @@ namespace MySecondBot
                         await Bot_Btn.Bind_ZhuanZhang(keyId, interaction);
                         break;
                     case "btn_tx":
-                        await interaction.RespondAsync($"你好，{username}，功能开发中.", ephemeral: true);
+                        await Bot_Btn.Bind_TiXian(keyId, interaction);
                         break;
                     case "btn_bdba":
                         await Bot_Btn.Bind_BiAn(keyId, interaction);
@@ -162,7 +153,13 @@ namespace MySecondBot
                         await interaction.RespondAsync($"你好，{username}，功能开发中.", ephemeral: true);
                         break;
                     case "btn_bdqb":
-                        await interaction.RespondAsync($"你好，{username}，功能开发中.", ephemeral: true);
+                        await Bot_Btn.Bind_QianBao(keyId, interaction);
+                        break;
+                    case "btn_qianbao_bsc":
+                        await Bot_Btn.Bind_QianBao_Bsc(keyId, interaction);
+                        break;
+                    case "btn_qianbao_usdt":
+                        await Bot_Btn.Bind_QianBao_Usdt(keyId, interaction);
                         break;
                     case "btn_wdyq":
                         await Bot_Btn.Bind_WoDeYaoQing(keyId, interaction);
@@ -170,6 +167,7 @@ namespace MySecondBot
                     case "btn_zz_code":
                         await Bot_Btn.Bind_ZhuanZhang_Code(keyId, interaction);
                         break;
+
                     default:
                         break;
                 }
@@ -203,6 +201,16 @@ namespace MySecondBot
                 case "menu_2fa_fa_secret":
                     await Bot_Form.Form_2FA_Fa_Secret(keyId, components, modal, mentions);
                     break;
+                case "menu_tx_copx":
+                    await Bot_Form.Form_tx_copx(keyId, components, modal, mentions);
+                    break;
+                case "menu_bind_bsc":
+                    await Bot_Form.Form_bind_bsc(keyId, components, modal, mentions);
+                    break;
+                case "menu_bind_usdt":
+                    await Bot_Form.Form_bind_usdt(keyId, components, modal, mentions);
+                    break;
+
                 default:
                     break;
             }

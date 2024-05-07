@@ -4,13 +4,8 @@ using H.Bot.BotModels;
 using H.RedisTools;
 using H.Saas.Tools;
 using Newtonsoft.Json;
-using OfficeOpenXml.Utils;
-using StackExchange.Redis;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MySecondBot
@@ -186,7 +181,8 @@ namespace MySecondBot
                       .WithTitle("站内转账")
                       .WithCustomId("menu_zz")
                       .AddTextInput("接收UID", "input_zz_uid", placeholder: "请输入接收人UID")
-                      .AddTextInput("转账数量", "input_point", placeholder: "请输入转账数量");
+                      .AddTextInput("转账数量", "input_point", placeholder: "请输入转账数量")
+                      .AddTextInput("2FA验证码", "input_zz_2fa_code", placeholder: "请输入2FA验证码");
             await interaction.RespondWithModalAsync(mb.Build());
             return;
         }
@@ -245,8 +241,63 @@ namespace MySecondBot
             var mb = new ModalBuilder()
                    .WithTitle("站内转账验证")
                    .WithCustomId("menu_zz_code")
-                   .AddTextInput("邮箱验证码", "input_zz_mail_code", placeholder: "请输入验证码")
-                   .AddTextInput("2FA验证码", "input_zz_2fa_code", placeholder: "请输入2FA验证码");
+                   .AddTextInput("邮箱验证码", "input_zz_mail_code", placeholder: "请输入验证码");
+            //.AddTextInput("2FA验证码", "input_zz_2fa_code", placeholder: "请输入2FA验证码");
+            await interaction.RespondWithModalAsync(mb.Build());
+            return;
+        }
+
+        public static async Task Bind_TiXian(string keyId, SocketInteraction interaction)
+        {
+            var mb = new ModalBuilder()
+                   .WithTitle("CopX 提现")
+                   .WithCustomId("menu_tx_copx")
+                   .AddTextInput("提取个数", "input_tx_copx", placeholder: "请输提取个数")
+                   .AddTextInput("2FA验证码", "input_tx_copx_2Fa", placeholder: "请输入2FA验证码");
+            await interaction.RespondWithModalAsync(mb.Build());
+            return;
+            //await interaction.RespondAsync($"你好，{username}，功能开发中.", ephemeral: true);
+        }
+
+        internal static async Task Bind_QianBao(string keyId, SocketInteraction interaction)
+        {
+            var cb = new ComponentBuilder()
+                   .WithButton("绑定BSC钱包", "btn_qianbao_bsc", ButtonStyle.Success)
+                  .WithButton("绑定USDT钱包", "btn_qianbao_usdt", ButtonStyle.Success);
+            var u = bll.GetUser(keyId);
+
+            var msg = "";
+            if (!string.IsNullOrEmpty(u.address_usdt))
+                msg += $"\r\nUSDT钱包(TRC20):{u.address_usdt} ";
+            if (!string.IsNullOrEmpty(u.address_bsc))
+                msg += $"\r\nBSC钱包:{u.address_bsc} ";
+
+            if (string.IsNullOrEmpty(msg))
+                msg += "绑定交易所";
+            await interaction.RespondAsync(msg,
+                  components: cb.Build(),
+                  ephemeral: true);
+            return;
+        }
+
+        internal static async Task Bind_QianBao_Bsc(string keyId, SocketInteraction interaction)
+        {
+            var mb = new ModalBuilder()
+                   .WithTitle("绑定BSC钱包")
+                   .WithCustomId("menu_bind_bsc")
+                   .AddTextInput("BSC钱包地址", "input_bind_bsc", placeholder: "输入您的BSC钱包地址")
+                   .AddTextInput("2FA验证码", "input_tx_copx_2Fa", placeholder: "请输入2FA验证码");
+            await interaction.RespondWithModalAsync(mb.Build());
+            return;
+        }
+
+        internal static async Task Bind_QianBao_Usdt(string keyId, SocketInteraction interaction)
+        {
+            var mb = new ModalBuilder()
+                .WithTitle("绑定USDT钱包(TRC-20)")
+                .WithCustomId("menu_bind_usdt")
+                .AddTextInput("USDT钱包地址", "input_bind_usdt", placeholder: "USDT钱包地址(TRC-20)")
+                .AddTextInput("2FA验证码", "input_tx_copx_2Fa", placeholder: "请输入2FA验证码");
             await interaction.RespondWithModalAsync(mb.Build());
             return;
         }

@@ -3,12 +3,12 @@
 namespace H.Bot.BotModels
 {
     ///<summary>
-    ///用户  usdt  记录表
+    ///用户 copx 互转
     ///</summary>
-    [SugarTable("hh_data_usdt")]
-    public partial class hh_data_usdt
+    [SugarTable("hh_to_copx_copx")]
+    public partial class hh_to_copx_copx
     {
-        public hh_data_usdt()
+        public hh_to_copx_copx()
         {
 
 
@@ -22,53 +22,32 @@ namespace H.Bot.BotModels
         public int id { get; set; }
 
         /// <summary>
-        /// Desc:用户ID
+        /// Desc:转出人 用户ID 
         /// Default:0
         /// Nullable:True
         /// </summary>           
         public int? userid { get; set; }
 
         /// <summary>
-        /// Desc:收支状态（0：收入；1：支出）
-        /// Default:true
-        /// Nullable:True
-        /// </summary>           
-        public bool? incometype { get; set; }
-
-        /// <summary>
-        /// Desc:usdt
+        /// Desc:转出 copx
         /// Default:0.000000
         /// Nullable:True
         /// </summary>           
-        public decimal? usdt { get; set; }
+        public decimal? copx { get; set; }
 
         /// <summary>
-        /// Desc:类型
+        /// Desc:转入人 用户ID 
         /// Default:0
         /// Nullable:True
         /// </summary>           
-        public int? changeid { get; set; }
+        public int? otheruserid { get; set; }
 
         /// <summary>
-        /// Desc:说明
-        /// Default:
+        /// Desc:转入 copx
+        /// Default:0.000000
         /// Nullable:True
         /// </summary>           
-        public string description { get; set; }
-
-        /// <summary>
-        /// Desc:来源订单ID
-        /// Default:0
-        /// Nullable:True
-        /// </summary>           
-        public int? sourceid { get; set; }
-
-        /// <summary>
-        /// Desc:来源用户ID
-        /// Default:0
-        /// Nullable:True
-        /// </summary>           
-        public int? sourceuserid { get; set; }
+        public decimal? othercopx { get; set; }
 
         /// <summary>
         /// Desc:0：正常；1：删除

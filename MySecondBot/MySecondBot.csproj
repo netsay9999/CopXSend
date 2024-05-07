@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Binance.Net" Version="9.9.6" />
     <PackageReference Include="Discord.Net" Version="3.14.1" />
     <PackageReference Include="Discord.Net.Interactions" Version="3.14.1" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
